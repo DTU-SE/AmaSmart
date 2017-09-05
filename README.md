@@ -1,2 +1,0 @@
-# AmaSmart
-Amazon SmartShelfs Simulation
