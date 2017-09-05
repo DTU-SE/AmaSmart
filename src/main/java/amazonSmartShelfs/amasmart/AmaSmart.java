@@ -24,7 +24,7 @@ public class AmaSmart {
 	/* notes
 	 * two additional locks have been added - not useful, might be deleted.
 	 * controlling Throughput might be implemented 
-	 */ 
+	 
 	
 	/* Config parameters */
 	  	static boolean seperateLog = false ;
