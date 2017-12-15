@@ -24,7 +24,7 @@ public class ShelfRunning implements Runnable {
 	private Robot robot ;
 
 	public ShelfRunning(Shelf shelf, int id,Product product,Robot robot) {
-		// TODO Auto-generated constructor stub
+	
 		super();
 		this.shelf = shelf;
 		this.id = id;
@@ -39,6 +39,7 @@ public class ShelfRunning implements Runnable {
 
 				shelf.setShake(false);
 			    shelf.proceedRobot(product.getId());
+			   
 				
 				
 
@@ -61,7 +62,6 @@ public class ShelfRunning implements Runnable {
 					
 					
 					/* Shelf being moved (message/receive) */
-					AmaSmart.log.newOrderLogEvent(product.getId(), "receive shelf being moved from robot", 2,"smart shelf",shelf.getId(),"robot",robot.getId(), null);
 				
 
 					Thread acc = new Accelerometer(shelf);
@@ -80,42 +80,53 @@ public class ShelfRunning implements Runnable {
 						
 					acc.interrupt();
 				
+				
 					
-						AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "receive shelf delivered from robot", 2,"smart shelf",shelf.getId(),"robot",robot.getId(), null);
+					
+					
 						
 						/* Shake (signal/incoming) */ 	/* reduce speed (message/send) */
 						shake = shelf.isShake();		
 
-						// Interrupt the accelerometer once the moving is over
 						
-
-						/* Dispose shelf (message/receive) */
+						if(shake){
+							/*  record shake for affected products */
+							int eventId = 	AmaSmart.log.newOrderLogEvent(product.getId(), "record shake for affected products", 0,"smart shelf",shelf.getId(),"products",-1, null);		
+							AmaSmart.log.logEventDone(eventId);
+							
+							
+								for(int i=0;  i<shelf.getContent().size(); i++){
+									shelf.getContent().get(i).setExtraCheckRequired(true);
+									AmaSmart.log.updateArtifact(shelf.getContent().get(i).getId(), shelf.getContent().get(i).getPrice(), shelf.getId(), "true");
+								}
+							}
+						else {
+							AmaSmart.log.updateArtifact(product.getId(), product.getPrice(), shelf.getId(), "false");
+						}
+						
+						
+						
+									
+						/* send last check */
+				
 						int productid = shelf.getProduct().getId();
 							synchronized (RFID.DisposeShelfLock.get(productid)) {
 							try {
 								while (!RFID.DisposeShelfLockNotify.get(productid))
 									RFID.DisposeShelfLock.get(productid).wait();
-								RFID.DisposeShelfLockNotify.put(productid, false);
-							} catch (InterruptedException e) {
+							RFID.DisposeShelfLockNotify.put(productid, false);
+						} catch (InterruptedException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "receive dispose shelf from clerk", 2,"smart shelf",shelf.getId(),"clerk",1, null);
-						
-							/*
-							 * Send message whether an extra check is required
-							 * or not
-							 */
 
 							
-							// call notify with product id
+							
 							int response;
 							if (shake) {
 								response = 1;
-								AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "send extra check required to clerk", 2,"smart shelf",shelf.getId(),"clerk",1, null);
 								} else {
 									response = 2;
-									AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "send no extra check required to clerk", 2,"smart shelf",shelf.getId(),"clerk",1, null);
 									}
 							
 						    /* extra check required or not (message/send)*/

@@ -24,7 +24,7 @@ public class Robot {
 	
 	
 	  private   PoolWorker thread;
-	   private  LinkedBlockingQueue queue;
+	  private  LinkedBlockingQueue queue;
 
 	public Robot(int id, HashMap<Integer, Integer[]> catalogue, LinkedList<Shelf> shelfs) {
 		this.id = id;
@@ -37,6 +37,9 @@ public class Robot {
 		this.shelfs = shelfs;
 		this.queue = new LinkedBlockingQueue();
 		
+		this.status = RobotStatus.terminated; // added recently 
+		
+		
 		  thread = new PoolWorker(queue);
           thread.start();
 
@@ -44,14 +47,15 @@ public class Robot {
 	
     public void execute(Runnable task) {
         synchronized (queue) {
-    	///	AmaSmart.log.newOrderLogEvent(-1, "added to pool", 2, "test event",-1);
             queue.add(task);
             queue.notify();
         }
 }
 	
   
-	
+	public LinkedBlockingQueue getQueue(){
+		return this.queue;
+	}
 
 	public Shelf FindAppropriateSHelf(Product p) {
 		Integer[] productShelfAndIndex = catalogue.get(p.getId());
@@ -77,7 +81,6 @@ public class Robot {
 
 				RFID.robotInsideLockNotify.put(id, false);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -108,6 +111,15 @@ public class Robot {
 		}
 	}
 
+	public void instanceDone(int id) {
+		
+		synchronized (RFID.NRDlock.get(id)) {
+			RFID.NRDlockNotify.put(id, true);
+			RFID.NRDlock.get(id).notify();
+		}
+	}
+	
+	
 	/* getters and setters */
 	public int getId() {
 		return id;

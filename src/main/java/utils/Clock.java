@@ -1,6 +1,11 @@
 package utils;
 
 import java.util.Calendar;
+import java.util.HashMap;
+
+import org.apache.commons.math3.distribution.BetaDistribution;
+
+import amazonSmartShelfs.amasmart.AmaSmart;
 
 public class Clock extends Thread {
 
@@ -17,15 +22,30 @@ public class Clock extends Thread {
 	}
 	
 	
-	public synchronized  int guessSleepTime(int time){
+	public synchronized  int sleepTimeFromBetaDistribution(HashMap<String, Double> timedata, int fraction){
+
+		double min = timedata.get("min");
+		double max = timedata.get("max");
+		double average = timedata.get("average");
+		double mode = timedata.get("mode");
 		
-		int range = (int) time/4 ;
-	    int min = time - range ;
-	    int max = time + range ;
+	
+		
+	    double alpha = ((average - min)*(2*mode - min - max))/((mode - average)*(max-min)) ; 
+	    double beta = alpha*(max-average)/(average-min) ;
 	    
-	    int result = (int) (Math.random() * ((max - min) + 1)) ;
+	    BetaDistribution betadist = new BetaDistribution(alpha, beta);
+       
+            double x = Math.random();
+            double b = min + (max-min)*betadist.inverseCumulativeProbability(x);
+            
 		
-		return result ;
+		int ret = (int) Math.round(b) ; 
+		if(fraction!=-1){
+			ret =  (int) Math.round(b/fraction) ;
+		}
+		
+		return  ret*AmaSmart.clockPrecision;  
 	}
 
 	

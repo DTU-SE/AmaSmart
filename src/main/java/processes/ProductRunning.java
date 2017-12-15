@@ -32,15 +32,15 @@ public class ProductRunning extends Thread {
 
 		
 		// mark begining of activity using RFID sensor
-		int eventId = RFID.recordBegining(product.getId(), "collect product from shelf", 1, "clerk",AmaSmart.clerkID,"shelf",shelfid);
+		int eventId = RFID.recordBegining(product.getId(), "collector", 1, "clerk",AmaSmart.clerkID,"product",product.getId());
 		
 		
 	
 		
 		try {
-			Thread.sleep(AmaSmart.clock.guessSleepTime(AmaSmart.collectProductFromShelf_duration));
+			Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("collectProductFromShelf"), -1));
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		
@@ -55,11 +55,11 @@ public class ProductRunning extends Thread {
 		/// need RFID sensor here to mark begning and end of this activity
 		/* collect product from shelf (activity) */
 		
-		int eventId = RFID.recordBegining(product.getId(), "do extra check", 1, "clerk",AmaSmart.clerkID, "product",product.getId());
+		int eventId = RFID.recordBegining(product.getId(), "extraCheck", 1, "clerk",AmaSmart.clerkID, "product",product.getId());
 		
 		
 		try {
-			Thread.sleep(AmaSmart.clock.guessSleepTime(AmaSmart.extraCheck_duration));
+			Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("extraCheck"), -1));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -77,10 +77,10 @@ public class ProductRunning extends Thread {
 		/// need RFID sensor here to mark begining and end of this activity
 		/* collect product from shelf (activity) */
 		
-		int eventId = RFID.recordBegining(product.getId(), "Package product", 1,"clerk",AmaSmart.clerkID, "product",product.getId());
+		int eventId = RFID.recordBegining(product.getId(), "packageDone", 1,"clerk",AmaSmart.clerkID, "product",product.getId());
 		
 		try {
-			Thread.sleep(AmaSmart.clock.guessSleepTime(AmaSmart.packageProduct_duration));
+			Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("packageProduct"), -1));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -88,6 +88,9 @@ public class ProductRunning extends Thread {
 		
 		RFID.recordEnd(eventId);
 
+		
+	   eventId = AmaSmart.log.newOrderLogEvent(product.getId(), "Product Delivered", 0,"clerk",1,"product",product.getId(), null);
+		AmaSmart.log.logEventDone(eventId);
 	
 
 		return true;
@@ -99,12 +102,10 @@ public class ProductRunning extends Thread {
 		
 		boolean needcheck = false;
 
-		
-		
 
 		/* Shelf containing product received (message/receive) */
 		robot.shelfContainingProductReceived(product,product.getId());
-		AmaSmart.log.newOrderLogEvent(product.getId(), "receive response from robot ", 2, "clerk",AmaSmart.clerkID,"robot",robot.getId(), null);
+		//AmaSmart.log.newOrderLogEvent(product.getId(), "receive response from robot ", 2, "clerk",AmaSmart.clerkID,"robot",robot.getId(), null);
 
 		int shelfid = robot.getLocation().getId();
 		
@@ -113,16 +114,15 @@ public class ProductRunning extends Thread {
 		
 		
 		
-		/* Dispose shelf (message to shelf)(message/send) */
-		AmaSmart.log.newOrderLogEvent(product.getId(), "send dispose shelf (to shelf)", 2, "clerk",AmaSmart.clerkID,"shelf",shelfid, null);
+		/* Dispose shelf (message to shelf)(message/send)  (ignore) */
 		robot.getLocation().DisposeShelf(product.getId());
 
 		/* Dispose shelf (message to robot)(message/send) */
-		AmaSmart.log.newOrderLogEvent(product.getId(), "send dispose shelf (to robot)", 2, "clerk",AmaSmart.clerkID,"robot",robot.getId(), null);
+		AmaSmart.log.newOrderLogEvent(product.getId(), "disposeShelf", 2, "clerk",AmaSmart.clerkID,"robot",robot.getId(), null);
 		robot.disposeShelf(product.getId());
 
 		
-		/* Require extra check condition (event-based gatway) */
+		/* wait for the last check */
 		synchronized (RFID.ExtraChecklock.get(product.getId())) {
 			try {
 				while (RFID.ExtraChecklockNotify.get(product.getId()) == 0) {
@@ -133,26 +133,28 @@ public class ProductRunning extends Thread {
 				e.printStackTrace();
 			}
 			if (RFID.ExtraChecklockNotify.get(product.getId()) == 1) {
-				needcheck = true;
+			//	needcheck = true;
 			}
 			
 			RFID.ExtraChecklockNotify.put(product.getId(), 0);
 
-			/* extra check required (message received) */
+		
+		 /* check the product artificat */
+			int eventId = 	AmaSmart.log.newOrderLogEvent(product.getId(), "check if the product was shaked", 0,"clerk",1,"product",product.getId(), null);		
+			AmaSmart.log.logEventDone(eventId);
+		    if(product.isExtraCheckRequired()) needcheck = true ; else needcheck = false ;
+		
 			if (needcheck) {
 				/* extra check (activity) */
-				AmaSmart.log.newOrderLogEvent(product.getId(), "receive extra check required", 2, "clerk",AmaSmart.clerkID,"shelf",shelfid, null);
 				this.extraCheck_activity(product);
-			}
-			else {
-				AmaSmart.log.newOrderLogEvent(product.getId(), "receive no extra check required", 2, "clerk",AmaSmart.clerkID,"shelf",shelfid, null);
 			}
 
 			/* package product (activity) */
 			this.packageProduct_activity(product);
 			
-			//robot.goToNext();
-			//product.goToNext();
+			robot.instanceDone(product.getId());
+			
+		
 		}
 	}
 

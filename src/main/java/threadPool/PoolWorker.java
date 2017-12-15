@@ -26,8 +26,7 @@ public class PoolWorker extends Thread {
                     task = (Runnable) queue.poll();
                 }
 
-                // If we don't catch RuntimeException,
-                // the pool could leak threads
+              
                 try {
                     task.run();
                 } catch (RuntimeException e) {

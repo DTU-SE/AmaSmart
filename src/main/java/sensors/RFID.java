@@ -24,6 +24,7 @@ public class RFID {
 	public static HashMap<Integer, Object> ExtraChecklock  = new HashMap<Integer, Object>();
 	public static HashMap<Integer, Object> goTonextLock  = new HashMap<Integer, Object>();
 	public static HashMap<Integer, Object> AccAckLock  = new HashMap<Integer, Object>();
+	public static HashMap<Integer, Object> NRDlock  = new HashMap<Integer, Object>();
 	
 	public static HashMap<Integer, Boolean> useRobotLockNotify = new HashMap<Integer, Boolean>();
 	public static HashMap<Integer, Boolean> acessShelfLockNotify = new HashMap<Integer, Boolean>();
@@ -37,13 +38,14 @@ public class RFID {
 	public static HashMap<Integer, Integer> ExtraChecklockNotify  = new HashMap<Integer, Integer>();
 	public static HashMap<Integer, Boolean> goTonextLockNotify  = new HashMap<Integer, Boolean>();
 	public static HashMap<Integer, Boolean> AccAckLockNotify  = new HashMap<Integer, Boolean>();
+	public static HashMap<Integer, Boolean> NRDlockNotify  = new HashMap<Integer, Boolean>();
 	
   /* Active senors : start-time and end-time of manual activities  */
 	
 	
 	public synchronized static int recordBegining(int productId, String eventname,int type,String subjectgroup, int subjectid, String objectgroup, int objectid){
 		
-		int eventId = AmaSmart.log.newOrderLogEvent(productId, eventname, type, subjectgroup,subjectid,subjectgroup,subjectid, null);
+		int eventId = AmaSmart.log.newOrderLogEvent(productId, eventname, type, subjectgroup,subjectid,objectgroup,objectid, "manualact");
 		
 		return eventId ;
 		

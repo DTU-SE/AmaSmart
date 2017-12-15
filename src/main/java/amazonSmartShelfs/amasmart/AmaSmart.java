@@ -1,7 +1,10 @@
 package amazonSmartShelfs.amasmart;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -15,42 +18,114 @@ import data.RobotStatus;
 import data.Shelf;
 import processes.ProductRunning;
 import processes.RobotRunning;
+import processes.Running;
 import processes.ShelfRunning;
 import sensors.Accelerometer;
 import sensors.RFID;
+import threadPool.ThreadPool;
 
 public class AmaSmart {
+
+	/*
+	 *  Randomness and Queuing parameters
+	 *
+	 */
 	
-	/* notes
-	 * two additional locks have been added - not useful, might be deleted.
-	 * controlling Throughput might be implemented 
-	 
-	
-	/* Config parameters */
-	  	static boolean seperateLog = false ;
-	  	static boolean logbyprocess = true ;
-		static int numberOfproducts = 1000 ; 
-		static int numberOfProductsInInventory = 1400 ; 
-		static int numberOfShelfs = 20 ; 
-		static int NumberofRobots = 8 ;
-	  
-	
-	/* Activities duration (corresponding to thread sleep value) approximation of [+25% -25%] is used for simulation */
-	// clerk process activities
-		//  requestProduct_duration depends on robot availability
-		public static int collectProductFromShelf_duration = 50 ;
-		public static int extraCheck_duration = 100 ;
-		public static int packageProduct_duration = 70 ;
-   /// robot process activities
-		public static int putDownCurrentSHelf_duration = 20;
-		public static int goToAppropriateShelf_duration = 40;
-		public static int moveShelfTodock_duration = 40 ;
-		public static int moveShelfFromClerkDock_duration = 10;
-		public static int requestProduct_duration = 10 ;
-        public static int notify_duration = 4 ;
+	public static int clockGranularity = 60 ; /// 60 second -> 1 second
+	public static int serviceRate = 200 ; // the average number of cases to be processed per time unit
+	public static double averageTimeBetweenTwoSubsequentCases = 4 ; // the average time (in minute) between two subsequent cases (1/lambda)
+	public static double balkingRate = 0.01 ; // the average number of cases that suddenly terminate before being completed
+	/* Beta distribution is used to generate activities execution time 
+	 * For each activity name, input the min, the max, the average, and the mode*/
+    public static final HashMap<String, HashMap<String, Double>> times = new HashMap<String, HashMap<String, Double>>(){{
+	    	put("collectProductFromShelf",new HashMap<String, Double>(){{
+	    		put("min",1.0);
+	    		put("max",15.0);
+	    		put("average",2.0);
+	    		put("mode",1.5);
+	    	}});
+	    	
+	    	put("extraCheck",new HashMap<String, Double>(){{
+	    		put("min",1.0);
+	    		put("max",10.0);
+	    		put("average",6.0);
+	    		put("mode",5.0);
+	    	}});
+	    	
+	    	put("packageProduct",new HashMap<String, Double>(){{
+	    		put("min",3.0);
+	    		put("max",15.0);
+	    		put("average",10.0);
+	    		put("mode",8.0);
+	    	}});
+	    	
+	    	put("putDownCurrentSHelf",new HashMap<String, Double>(){{
+	    		put("min",0.5);
+	    		put("max",10.0);
+	    		put("average",4.0);
+	    		put("mode",3.0);
+	    	}});
+	    	
+	    	put("goToAppropriateShelf",new HashMap<String, Double>(){{
+	    		put("min",2.0);
+	    		put("max",15.0);
+	    		put("average",10.0);
+	    		put("mode",8.0);
+	    	}});
+	    	
+	    	put("moveShelfTodock",new HashMap<String, Double>(){{
+	    		put("min",2.0);
+	    		put("max",15.0);
+	    		put("average",10.0);
+	    		put("mode",7.0);
+	    	}});
+	    	
+	    	put("moveShelfFromClerkDock",new HashMap<String, Double>(){{
+	    		put("min",2.0);
+	    		put("max",15.0);
+	    		put("average",10.0);
+	    		put("mode",7.0);
+	    	}});
+	    	
+	    	put("requestProduct",new HashMap<String, Double>(){{
+	    		put("min",1.0);
+	    		put("max",25.0);
+	    		put("average",15.0);
+	    		put("mode",8.0);
+	    	}});
+	    	
+	    	put("notify",new HashMap<String, Double>(){{
+	    		put("min",0.0);
+	    		put("max",1.0);
+	    		put("average",0.7);
+	    		put("mode",0.2);
+	    	}});
+	    }};
+	    public static int clockPrecision = 10 ; // in ms (decrease for faster execution) 
 	    
-		/* initiate artificial clock */
-		public static utils.Clock clock ;
+	    
+	
+	/* 
+	 * 
+	 * Use case Parameters
+	 * 
+	 */
+
+		static int numberOfCases = 1500 ; 
+		static int numberOfShelfs = 500 ; 
+		static int NumberofRobots = 100 ;
+		static int productsPerShelf = 20 ; // should match with the number of products in inventory numberOfProductsInInventory such that no product is left without shelf
+	    public static double shakeratio = 0.3 ; 
+
+	 /* extra logging parameters */ 
+	    
+	  	static boolean seperateLog = true ;
+	  	static boolean logbyprocess = true ;
+	  	static boolean productArtifact = true ;
+	  	
+	  	
+   /* initiate artificial clock */
+	public static utils.Clock clock ;
 		
 		
 	/* catalogue */
@@ -61,34 +136,29 @@ public class AmaSmart {
 	
    public static int clerkID = 0 ;
 	
-   /* Init RFID sensor for active sensors  */
+
   
-   
     public static void main(String[] args) throws InterruptedException {
     	
-    	
+	
     	/* Initiate artificial clock */
     	clock = new utils.Clock();
     	Thread clockrunning = new utils.ClockRunning(clock);
     	clockrunning.start();
     	
     	/* Initiate log */
-    	log = new utils.Logger(clock,seperateLog,logbyprocess);
-    	
-    	
+    	log = new utils.Logger(clock,seperateLog,logbyprocess,productArtifact);
 
     	/* create Shelfs, fill them with products, start thread for each shelf */
     	
-    	 LinkedList<Shelf> shelfs = initshelfs(numberOfShelfs,numberOfProductsInInventory);
-//         for(Shelf shelf : shelfs){
-//        	 Thread sruning = new ShelfRunning(shelf,shelf.getId());
-//        	 sruning.start();
-//         }
+    	int numberOfProductsInStock = numberOfShelfs*productsPerShelf;
+    	
+    	 LinkedList<Shelf> shelfs = initshelfs(numberOfShelfs,numberOfProductsInStock);
+
     	
          /* Generate order from scratch  */	  
-      Order order = generateOrderFromScratch(numberOfproducts,numberOfProductsInInventory,shelfs);
+      Order order = generateOrderFromScratch(numberOfCases,numberOfProductsInStock,shelfs);
      
-      
       /* Start Robots  */
         LinkedList<Robot> robots = new LinkedList<Robot>();
         for(int i=0;i<NumberofRobots;i++){
@@ -127,10 +197,10 @@ public class AmaSmart {
   		shelf.execute(ss);
   	}
     
-    public static void requestProduct_activity(Order order,LinkedList<Robot> robots){
+    public static void requestProduct_activity(Order order,LinkedList<Robot> robots) throws InterruptedException{
     	 int i = 0;
          for(Product product : order.getOrder()){
-        	 // dont forget to put(getid,value) when adding a new log
+        	
         	 RFID.ExtraChecklock.put(product.getId(), false); 
         	 RFID.ExtraChecklockNotify.put(product.getId(), 0);
         	
@@ -149,37 +219,74 @@ public class AmaSmart {
         	
         	 RFID.acessShelfLock.put(product.getId(), new Object());
              RFID.acessShelfLockNotify.put(product.getId(), false);
-      
-        	
+             
+          	 RFID.NRDlock.put(product.getId(), new Object());
+             RFID.NRDlockNotify.put(product.getId(), false);
+             
+            
          	}
          
      	HashMap<Integer, Thread> runningThreads = new HashMap<Integer, Thread>();
      	
-		for(int e=0; e<order.getOrder().size() ; e++){
+     	/* Pool threads according to serviceRate */
+     	ThreadPool tp = new ThreadPool(serviceRate);
+     	
+		for(int e=0; e<=order.getOrder().size() ; e++){
 			
-			Product product = order.getOrder().get(e);
+			if(e==order.getOrder().size()){				
+			    // last iteration : wait for the robots to finish their last job 
+				System.out.println("----");
+				for(int r=0; r<robots.size(); r++){		
+					while(robots.get(r).getQueue().size()!=0){
+						Thread.sleep(100);
+					}
+				}
+				
+			 System.exit(0);
+			}
 			
-			int eventId = log.newOrderLogEvent(product.getId(), "Request product", 0,"clerk",clerkID,"product",product.getId(), null);
+			
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date date = clock.getInittimevalue().getTime();
+			String timenow = dateFormat.format(date); 
+		
+			
 			try {
-				Thread.sleep(clock.guessSleepTime(requestProduct_duration));
+				Thread.sleep(getPoissonRandom(averageTimeBetweenTwoSubsequentCases*AmaSmart.clockPrecision)); 
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			
-			log.logEventDone(eventId);
+			date = clock.getInittimevalue().getTime();
+			timenow = dateFormat.format(date); 
+			
+			Product product = order.getOrder().get(e);
+				
 			int min = 0;
 			int max = robots.size() - 1;
 			int SelectRobot = min + (int) (Math.random() * ((max - min) + 1));
 			
+			/// find appropriate shelf
+			Robot selectedR = robots.get(SelectRobot);
+			Shelf shelf = selectedR.FindAppropriateSHelf(product);
 			
-			/* Send product request$	$	 to robot (message/send) */
-			AmaSmart.log.newOrderLogEvent(product.getId(), "send request to robot", 2, "clerk",AmaSmart.clerkID,"robot",SelectRobot, null);
-			RobotRunning rr = new RobotRunning(robots.get(SelectRobot).getId(),robots.get(SelectRobot),product);
-			robots.get(SelectRobot).execute(rr);
+			// check if both robot and shelf are occupied
+			if (!selectedR.getStatus().equals(RobotStatus.terminated) && shelf.getState()!=0 ){
+				e--;
+				// skip case
+			}
 			
-			Thread productTr = new ProductRunning(robots.get(SelectRobot), product, order);
-			productTr.start();
+			else {
+
+				Running rr = new Running(robots,SelectRobot,product,order);
+				tp.execute(rr);
+				
+				
+			}
+		    
+			
+		
 
 			
 			
@@ -200,7 +307,7 @@ public class AmaSmart {
           
             RFID.reserveShelfLock.put(i, new Object());
          
-         
+  
             RFID.shelfFreelock.put(i, new Object());
             RFID.accelormeterStop.put(i, new Object());
            
@@ -228,11 +335,22 @@ public class AmaSmart {
     	for(int i=0;i<numberOfProducts;i++){		
     		/// create product with corresponding price
     		p = new Product(i, minP + (maxP - minP) * randomPrice.nextDouble());
-    	    /// select random shelf where to add the product
-    		int selectShelf =   minS + (int)(Math.random() * ((maxS - minS) + 1));
-    		// add product
     		
-    		shelfs.get(selectShelf).addProduct(p);
+    		boolean findemptyshelf = false ;
+    		
+    		int selectShelf =   minS + (int)(Math.random() * ((maxS - minS) + 1));
+    		while(findemptyshelf==false){
+    		// add product
+    		 // check if shelf has space
+    		if(shelfs.get(selectShelf).getContent().size()<productsPerShelf){
+    			shelfs.get(selectShelf).addProduct(p);
+    			findemptyshelf = true ;
+    		}
+    		else {
+        	    /// select another random shelf 
+    	    	selectShelf =   minS + (int)(Math.random() * ((maxS - minS) + 1));
+    		}
+    		}
     		
     		Integer[] productShelfAndIndex = new Integer[2];
     		productShelfAndIndex[0] = selectShelf ;
@@ -241,6 +359,8 @@ public class AmaSmart {
     		catalogue.put(i, productShelfAndIndex);
     	}
         
+    
+    	
         return shelfs ;
     }
     
@@ -269,4 +389,17 @@ public class AmaSmart {
     	
     	return o1 ;
     }
+    
+    private static int getPoissonRandom(double mean) {
+        Random r = new Random();
+        double L = Math.exp(-mean);
+        int k = 0;
+        double p = 1.0;
+        do {
+            p = p * r.nextDouble();
+            k++;
+        } while (p > L);
+        return k - 1;
+    }
+    
 }

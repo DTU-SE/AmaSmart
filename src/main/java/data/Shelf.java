@@ -32,7 +32,7 @@ public class Shelf {
 		this.content = new ArrayList<Product>();
 		this.ShelfLock = RFID.acessShelfLock;
 		this.stopAccelerometer = false;
-		
+		this.state = 0 ;
 		this.queue = new LinkedBlockingQueue();
 		
 		  thread = new PoolWorker(queue);
@@ -42,7 +42,6 @@ public class Shelf {
 	
 	   public void execute(Runnable task) {
 	        synchronized (queue) {
-	    	///	AmaSmart.log.newOrderLogEvent(-1, "added to pool", 2, "test event",-1);
 	            queue.add(task);
 	            queue.notify();
 	        }
@@ -76,6 +75,7 @@ public class Shelf {
 	public Product getProduct() {
 		return product;
 	}
+
 
 	public void setProduct(Product product) {
 		this.product = product;
@@ -146,22 +146,7 @@ public class Shelf {
 	}
 
 	public boolean isShake() {
-		/*
-		synchronized (RFID.accelormeterStop.get(id)) {
-		
-
-			try {
-				while (!RFID.accelormeterStopNotify.get(id))
-					RFID.accelormeterStop.get(id).wait();
-				RFID.accelormeterStopNotify.put(id, false);
-
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			return shake;
-		}
-		*/
+	
 		return shake ;
 		
 	}

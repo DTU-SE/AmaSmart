@@ -1,6 +1,7 @@
 package sensors;
 
 import java.util.Calendar;
+import java.util.Random;
 import java.util.TimeZone;
 
 import amazonSmartShelfs.amasmart.AmaSmart;
@@ -28,7 +29,8 @@ public class Accelerometer  extends Thread  implements Runnable  {
 			
 			
 				try {
-				Thread.sleep(AmaSmart.moveShelfTodock_duration/4);
+					Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("moveShelfTodock"), 4));
+				
 				if (detectedShake()) {
 					/* Shake (signal event) */
 					/* Reduce speed (message) */
@@ -44,13 +46,7 @@ public class Accelerometer  extends Thread  implements Runnable  {
 				
 				}
 			
-				/*
-				synchronized(RFID.accelormeterStop.get(shelf.getId())){
-					RFID.accelormeterStopNotify.put(shelf.getId(), true);
-					RFID.robotInsideLock.get(shelf.getId()).notify(); 
-					
-				}
-				*/
+				
 			
 			
 			shelf.accAck(shelf.getId());
@@ -61,19 +57,10 @@ public class Accelerometer  extends Thread  implements Runnable  {
 	
 	
 	public boolean detectedShake(){
-		
-		/* 25% chance for shake */
-		
-		int min = 1; 
-    	int max = 4;
-    	
-    	int randomvalue = min + (int)(Math.random() * ((max - min) + 1));
-    	
-    	if(randomvalue==1){
-    		return true ;
-    	}
-		
-		return false ;
+		if( new Random().nextDouble() <= AmaSmart.shakeratio) {  
+			return true ;
+			}
+			return false ;
 	}
 	
 }
