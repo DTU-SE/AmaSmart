@@ -27,7 +27,7 @@ import threadPool.ThreadPool;
 public class AmaSmart {
 	
 	/*
-	 *  Important: Always delete the old logs before generating a new ones!
+	 *  Important: Always delete the old logs before generating new ones!
 	 */
 
 	/*
