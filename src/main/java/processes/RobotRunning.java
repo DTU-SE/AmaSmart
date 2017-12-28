@@ -37,7 +37,7 @@ public class RobotRunning  implements Runnable {
    public void putdownCurrentShelf_activity(int productid, int shelfid){
 	   /* put down current shelf */
 	
-		int eventId = AmaSmart.log.newOrderLogEvent(productid, "putdown current shelf", 0, "robot",robot.getId(),"shelf",shelfid, null);
+		int eventId = AmaSmart.log.newOrderLogEvent(productid, "putdown current shelf", 0, "robot",robot.getId(),"shelf",shelfid, null, productid);
 		try {
 			Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("putDownCurrentSHelf"), -1));
 		} catch (InterruptedException e) {
@@ -50,8 +50,8 @@ public class RobotRunning  implements Runnable {
    }
 
    
-   public void goToAppropriateShelf_activity(Shelf shelf){
-		int eventId = AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "go to approriate shelf", 0,"robot",robot.getId(),"shelf",shelf.getId(), null);
+   public void goToAppropriateShelf_activity(Shelf shelf, int productid){
+		int eventId = AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "go to approriate shelf", 0,"robot",robot.getId(),"shelf",shelf.getId(), null, productid);
 		/* Set Robot location to shelf */
 		
 		/* Go to shelf (activitiy) */
@@ -63,18 +63,18 @@ public class RobotRunning  implements Runnable {
 			e.printStackTrace();
 		}
 		AmaSmart.log.logEventDone(eventId);
-	    AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "shelfMoved", 2,"robot",robot.getId(),"shelf",shelf.getId(), null);
+	    AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "shelfMoved", 2,"shelf",shelf.getId(),"robot",robot.getId(), null, product.getId());
 		
    }
    
    
-   public void moveshelftoDock_activity(Shelf shelf){
+   public void moveshelftoDock_activity(Shelf shelf,int productid){
 				/* Move Shelf to dock */
 
 				robot.getLocation().moveShelf();
 			
 
-				int eventId1 = AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "move shelf to dock", 0,"robot",robot.getId(),"shelf",shelf.getId(), null);
+				int eventId1 = AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "move shelf to dock", 0,"robot",robot.getId(),"shelf",shelf.getId(), null, productid);
 				try {
 					Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("moveShelfTodock"), -1));
 				} catch (InterruptedException e) {
@@ -90,7 +90,7 @@ public class RobotRunning  implements Runnable {
 
 
 					robot.setSpeed(robot.getSpeed() / 2); 
-					int eventId2 = AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "reduce speed", 0,"robot",robot.getId(),"shelf",shelf.getId(), null);
+					int eventId2 = AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "reduce speed", 0,"robot",robot.getId(),"shelf",shelf.getId(), null, product.getId());
 					try {
 						Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("moveShelfTodock"), -1));
 					} catch (InterruptedException e) {
@@ -109,7 +109,7 @@ public class RobotRunning  implements Runnable {
    }
    
    public boolean moveShelfFromClerkDock_activity(Shelf shelf) {
-	  int eventId =  AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "move shelf from dock", 0, "robot",robot.getId(),"shelf",shelf.getId(), null);
+	  int eventId =  AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "move shelf from dock", 0, "robot",robot.getId(),"shelf",shelf.getId(), null, product.getId());
 		try {
 			Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("moveShelfFromClerkDock"), -1));
 		} catch (InterruptedException e) {
@@ -127,7 +127,7 @@ public class RobotRunning  implements Runnable {
 			System.out.println(" Request product"+product.getId());
 		
 			int eventId = AmaSmart.log.newOrderLogEvent(product.getId(), "Request product", 0, "clerk", 1, "product",
-				product.getId(), null);
+				product.getId(), null, product.getId());
 			try {
 				Thread.sleep(AmaSmart.clock.sleepTimeFromBetaDistribution(AmaSmart.times.get("requestProduct"), -1));
 			} catch (InterruptedException e1) {
@@ -141,7 +141,7 @@ public class RobotRunning  implements Runnable {
 					
 					// wait until the shelf free
 					
-					 eventId =  AmaSmart.log.newOrderLogEvent(product.getId(), "Assgin robot", 0,"robot",robot.getId(),"shelf",shelf.getId(), null);
+					 eventId =  AmaSmart.log.newOrderLogEvent(product.getId(), "Assgin robot", 0,"robot",robot.getId(),"shelf",shelf.getId(), null, product.getId());
 				
 					 
 					 AmaSmart.log.logEventDone(eventId);
@@ -203,13 +203,13 @@ public class RobotRunning  implements Runnable {
 							
 							
 								/* Go to appropriate shelf (activity) */
-							this.goToAppropriateShelf_activity(shelf);	
+							this.goToAppropriateShelf_activity(shelf,product.getId());	
 							
 							
 						} 
 						/* XOR gateway: true gate */
 						else {
-							 AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "shelfMoved", 2,"robot",robot.getId(),"shelf",shelf.getId(), null);
+							 AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "shelfMoved", 2,"robot",robot.getId(),"shelf",shelf.getId(), null, -1);
 							/* set speed */
 							robot.setSpeed(10.00);
 							robot.setStatus(RobotStatus.moving);
@@ -218,13 +218,13 @@ public class RobotRunning  implements Runnable {
 
 						
 						/* Move shelf to dock (activity) (includes reduce speed activity) */
-						this.moveshelftoDock_activity(shelf);
+						this.moveshelftoDock_activity(shelf,product.getId());
 						
 						
 						/* Shelf Delivered (message) */
 						/* SHelf delivered (message/send) (going to shelf process) */
 						
-						AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "shelfDelivered", 2, "robot",robot.getId(),"shelf",shelf.getId(), null);
+						AmaSmart.log.newOrderLogEvent(shelf.getProduct().getId(), "shelfDelivered", 2, "shelf",shelf.getId(),"robot",robot.getId(), null, product.getId());
 						
 												robot.getLocation().shelfDelivered(shelf.getProduct().getId());
 												robot.shelfDelivered(shelf.getProduct().getId());

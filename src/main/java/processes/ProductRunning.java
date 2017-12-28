@@ -89,7 +89,7 @@ public class ProductRunning extends Thread {
 		RFID.recordEnd(eventId);
 
 		
-	   eventId = AmaSmart.log.newOrderLogEvent(product.getId(), "Product Delivered", 0,"clerk",1,"product",product.getId(), null);
+	   eventId = AmaSmart.log.newOrderLogEvent(product.getId(), "Product Delivered", 0,"clerk",1,"product",product.getId(), null, product.getId());
 		AmaSmart.log.logEventDone(eventId);
 	
 
@@ -118,7 +118,7 @@ public class ProductRunning extends Thread {
 		robot.getLocation().DisposeShelf(product.getId());
 
 		/* Dispose shelf (message to robot)(message/send) */
-		AmaSmart.log.newOrderLogEvent(product.getId(), "disposeShelf", 2, "clerk",AmaSmart.clerkID,"robot",robot.getId(), null);
+		AmaSmart.log.newOrderLogEvent(product.getId(), "disposeShelf", 2, "clerk",AmaSmart.clerkID,"robot",robot.getId(), null, product.getId());
 		robot.disposeShelf(product.getId());
 
 		
@@ -140,7 +140,7 @@ public class ProductRunning extends Thread {
 
 		
 		 /* check the product artificat */
-			int eventId = 	AmaSmart.log.newOrderLogEvent(product.getId(), "check if the product was shaked", 0,"clerk",1,"product",product.getId(), null);		
+			int eventId = 	AmaSmart.log.newOrderLogEvent(product.getId(), "check if the product was shaked", 0,"clerk",1,"product",product.getId(), null, product.getId());		
 			AmaSmart.log.logEventDone(eventId);
 		    if(product.isExtraCheckRequired()) needcheck = true ; else needcheck = false ;
 		

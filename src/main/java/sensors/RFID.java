@@ -45,7 +45,7 @@ public class RFID {
 	
 	public synchronized static int recordBegining(int productId, String eventname,int type,String subjectgroup, int subjectid, String objectgroup, int objectid){
 		
-		int eventId = AmaSmart.log.newOrderLogEvent(productId, eventname, type, subjectgroup,subjectid,objectgroup,objectid, "manualact");
+		int eventId = AmaSmart.log.newOrderLogEvent(productId, eventname, type, subjectgroup,subjectid,objectgroup,objectid, "manualact", productId);
 		
 		return eventId ;
 		

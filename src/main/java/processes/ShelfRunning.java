@@ -91,7 +91,7 @@ public class ShelfRunning implements Runnable {
 						
 						if(shake){
 							/*  record shake for affected products */
-							int eventId = 	AmaSmart.log.newOrderLogEvent(product.getId(), "record shake for affected products", 0,"smart shelf",shelf.getId(),"products",-1, null);		
+							int eventId = 	AmaSmart.log.newOrderLogEvent(product.getId(), "record shake for affected products", 0,"smart shelf",shelf.getId(),"products",-1, null, -1);		
 							AmaSmart.log.logEventDone(eventId);
 							
 							

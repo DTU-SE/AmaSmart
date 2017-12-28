@@ -34,7 +34,7 @@ public class Accelerometer  extends Thread  implements Runnable  {
 				if (detectedShake()) {
 					/* Shake (signal event) */
 					/* Reduce speed (message) */
-					AmaSmart.log.newOrderLogEvent(shelf.getId(), "Shake", 3, "Accelerometer", -1, "", -1, null); 
+					AmaSmart.log.newOrderLogEvent(shelf.getId(), "Shake", 3, "Accelerometer", -1, "", -1, null, -1); 
 					shelf.setShake(true);
 					break;
 				}

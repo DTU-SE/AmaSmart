@@ -35,10 +35,11 @@ public class AmaSmart {
 	 *
 	 */
 	
+	public static String logfilename = "";
 	public static int clockGranularity = 60 ; /// 60 second -> 1 second
 	public static int serviceRate = 200 ; // the average number of cases to be processed per time unit
 	public static double averageTimeBetweenTwoSubsequentCases = 4 ; // the average time (in minute) between two subsequent cases (1/lambda)
-	public static double balkingRate = 0.01 ; // the average number of cases that suddenly terminate before being completed
+	public static double balkingRate = 0 ; // the average number of cases that suddenly terminate before being completed
 	/* Beta distribution is used to generate activities execution time 
 	 * For each activity name, input the min, the max, the average, and the mode*/
     public static final HashMap<String, HashMap<String, Double>> times = new HashMap<String, HashMap<String, Double>>(){{
@@ -115,9 +116,9 @@ public class AmaSmart {
 	 * 
 	 */
 
-		static int numberOfCases = 1500 ; 
-		static int numberOfShelfs = 500 ; 
-		static int NumberofRobots = 100 ;
+		static int numberOfCases = 100 ; 
+		static int numberOfShelfs = 25 ; 
+		static int NumberofRobots = 10 ;
 		static int productsPerShelf = 20 ; // should match with the number of products in inventory numberOfProductsInInventory such that no product is left without shelf
 	    public static double shakeratio = 0.3 ; 
 
@@ -126,7 +127,7 @@ public class AmaSmart {
 	  	static boolean seperateLog = true ;
 	  	static boolean logbyprocess = true ;
 	  	static boolean productArtifact = true ;
-	  	
+	  	static String groudTruthFileName = logfilename+"groudTruth.csv";
 	  	
    /* initiate artificial clock */
 	public static utils.Clock clock ;
@@ -143,7 +144,16 @@ public class AmaSmart {
 
   
     public static void main(String[] args) throws InterruptedException {
-    	
+    
+
+//    	if(args[0].equals("-args")){
+//    		logfilename = args[1];
+//    		numberOfCases = Integer.valueOf(args[2]);
+//	    	NumberofRobots = Integer.valueOf(args[3]);
+//	    	numberOfShelfs = Integer.valueOf(args[4]);
+//	    	balkingRate = Double.valueOf(args[5]) ;
+//	    	groudTruthFileName = logfilename+"groudTruth.csv";
+//    	}
 	
     	/* Initiate artificial clock */
     	clock = new utils.Clock();
@@ -245,6 +255,10 @@ public class AmaSmart {
 						Thread.sleep(100);
 					}
 				}
+				
+				HashMap<Integer,LinkedList<Integer>> groundtruth = log.getGroundtruth();
+				
+				log.writeGroundTruth(groudTruthFileName);
 				
 			 System.exit(0);
 			}

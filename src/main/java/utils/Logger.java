@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
 import amazonSmartShelfs.amasmart.AmaSmart;
+
 
 public class Logger {
 	
@@ -26,10 +28,11 @@ public class Logger {
 	
 	
 	HashMap<Integer, LinkedList<String>> tempLog = new HashMap<Integer, LinkedList<String>>();
+	HashMap<Integer, LinkedList<Integer>> groundtruth = new HashMap<Integer, LinkedList<Integer>>();
 	
 	ArrayList<String> balkedArtificats ;
 	
-	String filename = "log/AmaSmartLog";
+	String filename ;
 	ArrayList<String> OrderLog ;
 	int eventIdFirstIndex = 1310 ;
 	
@@ -43,6 +46,7 @@ public class Logger {
 	
 	
 	public Logger(Clock clock, boolean separateLog, boolean logbyprocess,boolean productArtifact){
+		this.filename = AmaSmart.logfilename+"AmaSmartLog";
 		this.clock = clock ;
 		this.separateLog = separateLog ;
 		this.logbyprocess = logbyprocess ;
@@ -163,8 +167,6 @@ public class Logger {
 					 StringBuilder sb = new StringBuilder();
 					   sb.append("Case Id");
 				        sb.append(',');
-				        sb.append("Event Id");
-				        sb.append(',');
 				        sb.append("Start Timestamp");
 				        sb.append(',');
 				        sb.append("End Timesstamp");
@@ -180,6 +182,10 @@ public class Logger {
 				        sb.append("Object Group");
 				        sb.append(',');
 				        sb.append("Object Id");
+				        sb.append(',');
+				        sb.append("Event Id");
+				        
+				        
 				        sb.append('\n');
 
 				        fw.write(sb.toString());
@@ -187,10 +193,8 @@ public class Logger {
 				        
 				    	fw = new FileWriter(filename+"_robotProcess.csv", true);
 						
-				    	sb = new StringBuilder();
-				    	   sb.append("Case Id");
-					        sb.append(',');
-					        sb.append("Event Id");
+				    	   sb = new StringBuilder();
+						   sb.append("Case Id");
 					        sb.append(',');
 					        sb.append("Start Timestamp");
 					        sb.append(',');
@@ -207,32 +211,34 @@ public class Logger {
 					        sb.append("Object Group");
 					        sb.append(',');
 					        sb.append("Object Id");
+					        sb.append(',');
+					        sb.append("Event Id");
 					        sb.append('\n');
 
 					        fw.write(sb.toString());
 					        fw.close();
 					        
 					        
-					        fw = new FileWriter(filename+"_smartShelfProcess.csv", true);
-							
-					    	sb = new StringBuilder();
-					    	   sb.append("Case Id");
-						        sb.append(',');
-						        sb.append("Event Id");
-						        sb.append(',');
-						        sb.append("Start Timestamp");
-						        sb.append(',');
-						        sb.append("End Timesstamp");
-						        sb.append(',');
-						        sb.append("Event name");
-						        sb.append(',');
-						        sb.append("Event type");
-						        sb.append(',');
-						        sb.append("Shelf Id");
-						        sb.append('\n');
-
-						        fw.write(sb.toString());
-						        fw.close();
+//					        fw = new FileWriter(filename+"_smartShelfProcess.csv", true);
+//							
+//					    	sb = new StringBuilder();
+//					    	   sb.append("Case Id");
+//						        sb.append(',');
+//						        sb.append("Event Id");
+//						        sb.append(',');
+//						        sb.append("Start Timestamp");
+//						        sb.append(',');
+//						        sb.append("End Timesstamp");
+//						        sb.append(',');
+//						        sb.append("Event name");
+//						        sb.append(',');
+//						        sb.append("Event type");
+//						        sb.append(',');
+//						        sb.append("Shelf Id");
+//						        sb.append('\n');
+//
+//						        fw.write(sb.toString());
+//						        fw.close();
 					        
 					    	fw = new FileWriter(filename+"_accelerometer.csv", true);
 							
@@ -255,14 +261,14 @@ public class Logger {
 						    	fw = new FileWriter(filename+"_CLERK_RFID.csv", true);
 								
 								  sb = new StringBuilder();
-							        sb.append("Event Id");
-							        sb.append(',');
+							     
 							        sb.append("Chip");
 							        sb.append(',');
 							        sb.append("Timestamp");
 							        sb.append(',');
-							        sb.append("Product Id");
-
+							        sb.append("Item Id");
+							        sb.append(',');
+							        sb.append("Entry Id");
 
 							        sb.append('\n');
 
@@ -273,13 +279,13 @@ public class Logger {
 							        fw = new FileWriter(filename+"_ROBOT_RFID.csv", true);
 									
 									  sb = new StringBuilder();
-								        sb.append("Event Id");
-								        sb.append(',');
-								        sb.append("Chip Name");
+									   sb.append("Chip");
 								        sb.append(',');
 								        sb.append("Timestamp");
 								        sb.append(',');
 								        sb.append("Item Id");
+								        sb.append(',');
+								        sb.append("Entry Id");
 
 
 								        sb.append('\n');
@@ -287,58 +293,60 @@ public class Logger {
 								        fw.write(sb.toString());
 								        fw.close();
 								        
-								        fw = new FileWriter(filename+"_SHELF_RFID.csv", true);
-										
-										  sb = new StringBuilder();
-									        sb.append("Event Id");
-									        sb.append(',');
-									        sb.append("Chip Name");
-									        sb.append(',');
-									        sb.append("Timestamp");
-									        sb.append(',');
-									        sb.append("Item Id");
-
-
-									        sb.append('\n');
-
-									        fw.write(sb.toString());
-									        fw.close();
+//								        fw = new FileWriter(filename+"_SHELF_RFID.csv", true);
+//										
+//										  sb = new StringBuilder();
+//									    
+//									        sb.append("Chip");
+//									        sb.append(',');
+//									        sb.append("Timestamp");
+//									        sb.append(',');
+//									        sb.append("Item Id");
+//									        sb.append(',');
+//									        sb.append("Entry Id");
+//									        
+//
+//
+//									        sb.append('\n');
+//
+//									        fw.write(sb.toString());
+//									        fw.close();
 						      
 					
 				}
 				  if(productArtifact){
-					  fw = new FileWriter(filename+"_productArtifact.csv", true);
-						
-					  StringBuilder sb = new StringBuilder();
-				        sb.append("Product");
-				        sb.append(',');
-				        sb.append("Price");
-				        sb.append(',');
-				        sb.append("Shelf");
-				        sb.append(',');
-				        sb.append("ExtraCheck");
-
-
-				        sb.append('\n');
-
-				        fw.write(sb.toString());
-				        fw.close();
+//					  fw = new FileWriter(filename+"_productArtifact.csv", true);
+//						
+//					  StringBuilder sb = new StringBuilder();
+//				        sb.append("Product");
+//				        sb.append(',');
+//				        sb.append("Price");
+//				        sb.append(',');
+//				        sb.append("Shelf");
+//				        sb.append(',');
+//				        sb.append("ExtraCheck");
+//
+//
+//				        sb.append('\n');
+//
+//				        fw.write(sb.toString());
+//				        fw.close();
 				        
 				        
-				        fw = new FileWriter(filename+"_productArtifactUpdates.csv", true);
-						
-						  sb = new StringBuilder();
-					        sb.append("Product Id");
-					        sb.append(',');
-					        sb.append("Timestamp");
-					        sb.append(',');
-					        sb.append("ExtraCheck");
-
-
-					        sb.append('\n');
-
-					        fw.write(sb.toString());
-					        fw.close();
+//				        fw = new FileWriter(filename+"_productArtifactUpdates.csv", true);
+//						
+//						  sb = new StringBuilder();
+//					        sb.append("Product Id");
+//					        sb.append(',');
+//					        sb.append("Timestamp");
+//					        sb.append(',');
+//					        sb.append("ExtraCheck");
+//
+//
+//					        sb.append('\n');
+//
+//					        fw.write(sb.toString());
+//					        fw.close();
 				        
 			        }
 			        
@@ -356,11 +364,67 @@ public class Logger {
 		
 		
 	
+	
+	
+	
+	
+	
 	/*
 	 * Log new event. an event can be of the following types: 0 normal activity, 1: manual acitivity (starttime-endtime) (active sensor)
 	 * 2: message events (active sensor), 3: accelerometer (decoractive sensor)
 	 */
 	
+
+	public HashMap<Integer, LinkedList<Integer>> getGroundtruth() {
+		return groundtruth;
+	}
+
+
+
+
+	public void writeGroundTruth(String filename){
+		
+		HashMap<Integer,LinkedList<Integer>> groundtruth = getGroundtruth();
+		
+		
+		  FileWriter fw;
+			try {
+				fw = new FileWriter(filename, true);
+			    StringBuilder sb = new StringBuilder();
+			    
+			    ////
+				Iterator it2  =  groundtruth.entrySet().iterator();
+		    	
+			      while (it2.hasNext()) {
+			    	
+			    	HashMap.Entry pair2 = (HashMap.Entry)it2.next();
+			    	Integer maincaseid  = (Integer) pair2.getKey();
+			    	LinkedList<Integer> eventids  = (LinkedList<Integer>) pair2.getValue();
+
+			    	int count = 0 ;
+					for(Integer value : eventids){
+						 sb.append(value);
+						 if(count!=eventids.size()-1){
+							 sb.append(",");
+						 }
+						 count++;
+					}
+					  sb.append('\n');
+			      }
+			    ////
+			    	
+		       
+		        fw.write(sb.toString());
+		        fw.close();        
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+	}
+
+
+
 	public synchronized void updateArtifact(int productid, double price, int shelf, String extraCheck){
 		
 		  if(productArtifact){
@@ -368,48 +432,48 @@ public class Logger {
 				  
 			  
 			  FileWriter fw;
-			try {
-				fw = new FileWriter(filename+"_productArtifact.csv", true);
-		
-				
-			  StringBuilder sb = new StringBuilder();
-		        sb.append(productid);
-		        sb.append(',');
-		        sb.append(round(price,2));
-		        sb.append(',');
-		        sb.append(shelf);
-		        sb.append(',');
-		        sb.append(extraCheck);
-
-
-		        sb.append('\n');
-
-		        fw.write(sb.toString());
-		        fw.close();
+//			try {
+//				fw = new FileWriter(filename+"_productArtifact.csv", true);
+//		
+//				
+//			  StringBuilder sb = new StringBuilder();
+//		        sb.append(productid);
+//		        sb.append(',');
+//		        sb.append(round(price,2));
+//		        sb.append(',');
+//		        sb.append(shelf);
+//		        sb.append(',');
+//		        sb.append(extraCheck);
+//
+//
+//		        sb.append('\n');
+//
+//		        fw.write(sb.toString());
+//		        fw.close();
 		        
 		        
-		        if(extraCheck.equals("true")){
-		        	fw = new FileWriter(filename+"_productArtifactUpdates.csv", true);
-					
-					
-					   sb = new StringBuilder();
-				        sb.append(productid);
-				        sb.append(',');
-				        sb.append(getTimeStamp());
-				        sb.append(',');
-				        sb.append(extraCheck);
-				        sb.append('\n');
-
-				        fw.write(sb.toString());
-				        fw.close();
-		        }
+//		        if(extraCheck.equals("true")){
+//		        	fw = new FileWriter(filename+"_productArtifactUpdates.csv", true);
+//					
+//					
+//					   sb = new StringBuilder();
+//				        sb.append(productid);
+//				        sb.append(',');
+//				        sb.append(getTimeStamp());
+//				        sb.append(',');
+//				        sb.append(extraCheck);
+//				        sb.append('\n');
+//
+//				        fw.write(sb.toString());
+//				        fw.close();
+//		        }
 		    	
 		        
 		        
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			
 			this.productartificatlogged.add(productid);
 			
@@ -426,24 +490,43 @@ public class Logger {
 	    return (double) tmp / factor;
 	}
 	
-	public synchronized int newOrderLogEvent(int productId, String eventname,int type,String subjectgroup, int subjectid, String objectgroup, int objectid, String extrainfo){
+	public synchronized int newOrderLogEvent(int productId, String eventname,int type,String subjectgroup, int subjectid, String objectgroup, int objectid, String extrainfo, int groundTruth){
 	
-		   /* balking probability */
 		
-		    Random rn = new Random();
-		    double d = rn.nextDouble();     // random value in range 0.0 - 1.0
-		    if(d<=AmaSmart.balkingRate){
-		  
-		    	this.balkedArtificats.add(productId+"");
-		    	return -1 ;
-		    	
-		    }
 		
-		    else if(this.balkedArtificats.contains(productId+"")){
-		    	return -1 ; // already balked ;
-		    }
+//		    Random rn = new Random();
+//		    double d = rn.nextDouble();     // random value in range 0.0 - 1.0
+//		    if(d<AmaSmart.balkingRate){
+//		  
+//		    	this.balkedArtificats.add(productId+"");
+//		    	return -1 ;
+//		    	
+//		    }
+//		
+//		    else if(this.balkedArtificats.contains(productId+"")){
+//		    	return -1 ; // already balked ;
+//		    }
+//		    
 		    
 		    
+		    
+		int eventId = getEventIdIndex();
+		
+		
+		/// ground truth
+		if(groundTruth!=-1){
+			if(groundtruth.containsKey(groundTruth)){
+				
+				groundtruth.get(groundTruth).add(eventId); /// add event id
+				
+			} else {
+				
+				groundtruth.put(groundTruth, new LinkedList<Integer>());
+				groundtruth.get(groundTruth).add(eventId);
+				
+			}
+		}
+		
 		
 		if(!subjectgroup.equals("Accelerometer")){
 		try {
@@ -457,7 +540,7 @@ public class Logger {
 		if(extrainfo==null) extrainfo = "";
 		
 			
-		int eventId = getEventIdIndex();
+		
 		LinkedList<String> logevent = new LinkedList<String>();
 		
 		logevent.add(Integer.toString(productId));
@@ -569,7 +652,7 @@ public class Logger {
 					fw = new FileWriter(filename+"_accelerometer.csv", true);
 					
 					  StringBuilder sb = new StringBuilder();
-				        sb.append(logevent.get(0));
+				        sb.append(logevent.get(0)+"s");
 				        sb.append(',');
 				        sb.append(logevent.get(1));
 				        sb.append(',');
@@ -626,15 +709,15 @@ public class Logger {
 					  	fw = new FileWriter(filename+"_CLERK_RFID.csv", true);
 						
 				    	 sb = new StringBuilder();
-					        sb.append(logevent.get(1)+"CR"); 
-					        sb.append(',');
-					        sb.append(logevent.get(3)); 
+					       
+				    	 sb.append(logevent.get(3));
 					        sb.append(',');
 					        sb.append(getTimeStamp()); 
 					        sb.append(',');
 					        sb.append(logevent.get(8)); 
-
-
+					        sb.append(',');
+					        
+					        sb.append(logevent.get(1)); 
 					        sb.append('\n');
 
 					        fw.write(sb.toString());
@@ -647,15 +730,15 @@ public class Logger {
 					        fw = new FileWriter(filename+"_ROBOT_RFID.csv", true);
 							
 							  sb = new StringBuilder();
-						        sb.append(logevent.get(1)+"RR"); 
-						        sb.append(',');
+						      
 						        sb.append(logevent.get(3)); 
 						        sb.append(',');
 						        sb.append(getTimeStamp()); 
 						        sb.append(',');
 						        sb.append(logevent.get(8)); 
-
-
+						        sb.append(',');
+						  
+						        sb.append(logevent.get(1)); 
 						        sb.append('\n');
 
 						        fw.write(sb.toString());
@@ -665,24 +748,25 @@ public class Logger {
 					
 				
 				
-					else if(logevent.get(7).equals("shelf") ){
-						        fw = new FileWriter(filename+"_SHELF_RFID.csv", true);
-								
-								  sb = new StringBuilder();
-							        sb.append(logevent.get(1)+"SR"); 
-							        sb.append(',');
-							        sb.append(logevent.get(3)); 
-							        sb.append(',');
-							        sb.append(getTimeStamp()); 
-							        sb.append(',');
-							        sb.append(logevent.get(8)); 
-
-
-							        sb.append('\n');
-
-							        fw.write(sb.toString());
-							        fw.close();
-					}
+//					else if(logevent.get(7).equals("shelf") ){
+//						        fw = new FileWriter(filename+"_SHELF_RFID.csv", true);
+//								
+//								  sb = new StringBuilder();
+//							       
+//								  sb.append(logevent.get(3)); 
+//							        sb.append(',');
+//							        sb.append(getTimeStamp()); 
+//							        sb.append(',');
+//							        sb.append(logevent.get(8)); 
+//							        sb.append(',');
+//							      
+//							        sb.append(logevent.get(1)); 
+//
+//							        sb.append('\n');
+//
+//							        fw.write(sb.toString());
+//							        fw.close();
+//					}
 					
 				}
 				
@@ -691,7 +775,7 @@ public class Logger {
 					fw = new FileWriter(filename+"_accelerometer.csv", true);
 					
 					  StringBuilder sb = new StringBuilder();
-				        sb.append(logevent.get(0)+"AC");
+				        sb.append(logevent.get(0)+"s");
 				        sb.append(',');
 				        sb.append(logevent.get(1));
 				        sb.append(',');
@@ -714,8 +798,7 @@ public class Logger {
 					
 					 StringBuilder sb = new StringBuilder();
 				        sb.append(logevent.get(0)+"CP");
-				        sb.append(',');
-				        sb.append(logevent.get(1));
+				      
 				        sb.append(',');
 				        sb.append(logevent.get(2));
 				        sb.append(',');
@@ -732,7 +815,10 @@ public class Logger {
 				        sb.append(logevent.get(7));
 				        sb.append(',');
 				        sb.append(logevent.get(8));
-
+				        sb.append(',');
+				        sb.append(logevent.get(1));
+				        
+				        
 				        sb.append('\n');
 
 				        fw.write(sb.toString());
@@ -745,8 +831,7 @@ public class Logger {
 					
 					 StringBuilder sb = new StringBuilder();
 				        sb.append(logevent.get(0)+"RP");
-				        sb.append(',');
-				        sb.append(logevent.get(1));
+				       
 				        sb.append(',');
 				        sb.append(logevent.get(2));
 				        sb.append(',');
@@ -763,6 +848,8 @@ public class Logger {
 				        sb.append(logevent.get(7));
 				        sb.append(',');
 				        sb.append(logevent.get(8));
+				        sb.append(',');
+				        sb.append(logevent.get(1));
 
 				        sb.append('\n');
 
@@ -772,30 +859,30 @@ public class Logger {
 				}
 				else if(logevent.get(5).equals("smart shelf")){
 					
-					fw = new FileWriter(filename+"_smartShelfProcess.csv", true);
-					
-					
-					 StringBuilder sb = new StringBuilder();
-				        sb.append(logevent.get(0)+"SSP");
-				        sb.append(',');
-				        sb.append(logevent.get(1));
-				        sb.append(',');
-				        sb.append(logevent.get(2));
-				        sb.append(',');
-				        sb.append(getTimeStamp());
-				        sb.append(',');
-				        sb.append(logevent.get(3));
-				        sb.append(',');
-				        sb.append(logevent.get(4));
-				        sb.append(',');
-				        sb.append(logevent.get(6));
-
-
-				        sb.append('\n');
-
-				        fw.write(sb.toString());
-				        fw.close();
-					
+//					fw = new FileWriter(filename+"_smartShelfProcess.csv", true);
+//					
+//					
+//					 StringBuilder sb = new StringBuilder();
+//				        sb.append(logevent.get(0)+"SSP");
+//				        sb.append(',');
+//				        sb.append(logevent.get(1));
+//				        sb.append(',');
+//				        sb.append(logevent.get(2));
+//				        sb.append(',');
+//				        sb.append(getTimeStamp());
+//				        sb.append(',');
+//				        sb.append(logevent.get(3));
+//				        sb.append(',');
+//				        sb.append(logevent.get(4));
+//				        sb.append(',');
+//				        sb.append(logevent.get(6));
+//
+//
+//				        sb.append('\n');
+//
+//				        fw.write(sb.toString());
+//				        fw.close();
+//					
 				}
 				
 			
